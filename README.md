@@ -1,6 +1,6 @@
 # Blockclock Adapter for StartOS
 
-A [StartOS](https://start9.com) service package for the [Umbrel Blockclock Adapter](https://github.com/billerickson/Umbrel-Blockclock-Adapter). Runs a Coinkite BLOCKCLOCK mini without internet access by collecting Bitcoin data from StartOS services and pushing it to the BLOCKCLOCK over LAN.
+A [StartOS](https://start9.com) service package for the [Blockclock Adapter](https://github.com/billerickson/Umbrel-Blockclock-Adapter). Runs a Coinkite BLOCKCLOCK mini without internet access by collecting Bitcoin data from StartOS services and pushing it to the BLOCKCLOCK over LAN.
 
 ## Architecture
 
@@ -22,6 +22,14 @@ On the BLOCKCLOCK's internal web page:
 3. Set **Screen Update Rate** to **Manual** (under **Display**) so the normal pull cycle never replaces values pushed by the adapter.
 
 Once the backend URL is local/broken, the firmware no longer needs to reach the internet to display data — it only receives pushes from the adapter.
+
+> **Note:** It appears the BLOCKCLOCK only reaches out to one IP address per region:
+>
+> - N. America: `35.193.3.177`
+> - Europe: `34.65.13.65`
+> - Asia: `35.200.21.98`
+>
+> These are Google Cloud Platform (GCP) addresses where Coinkite is/was hosting their services. It should be enough to simply block these so the device doesn't reach out to Coinkite.
 
 ## Isolating the device at the network level
 
