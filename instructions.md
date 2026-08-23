@@ -46,8 +46,11 @@ Pool metrics (hash rate, blocks found) are only active when a **Pool API URL** i
 - **Left button** — opens the firmware's own menu (unchanged behavior).
 - **Middle-right button** — while an adapter screen is showing, it advances to the next metric.
   The adapter polls for presses every few seconds and respects the E-Ink minimum refresh
-  interval (~60 s), so a press may take up to a minute to take effect; a brief firmware screen
-  or stale message in between is normal.
+  interval (~60 s), so a press may take up to a minute to take effect.
+  **Expect a brief "Network connection problem" screen after pressing** once the Data Backend
+  is set to `127.0.0.1` — the press wakes the firmware's dead backend pull first; the adapter
+  replaces it with the next metric within ~10–40 seconds. Cosmetic only; automatic rotation
+  never shows it.
 - The rotation also advances automatically every **Display Interval** seconds (default 300).
 
 ## Getting set up

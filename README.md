@@ -48,6 +48,18 @@ at a glance the value came from your own node:
 Depending on firmware rendering, some corner labels may swap position between panels — that
 is the device's own layout logic, not different data.
 
+## Button advance shows an error screen (expected)
+
+Once the clock's **Data Backend** is pointed at `127.0.0.1`, pressing the middle-right button
+will briefly display a firmware error screen ("Network connection problem" or similar). This
+is expected and harmless: the button press first wakes the firmware's own backend-pull logic,
+which immediately fails against your dead backend URL — by design — and paints the error.
+Within ~10–40 seconds the adapter notices the press and pushes the next metric, replacing the
+error screen.
+
+There is no way to suppress this from the adapter side; it is cosmetic firmware behavior on
+manual advance only. Automatic rotation never triggers it.
+
 ## Removing the device's dependency on Coinkite's data backend
 
 The BLOCKCLOCK firmware is configured by default to **pull** data from Coinkite's internet backend. The adapter **pushes** values to the device over LAN, so you want the firmware to stop pulling. Otherwise the two sources fight each other and the device keeps making outbound internet requests.
