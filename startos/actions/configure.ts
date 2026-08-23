@@ -1,5 +1,5 @@
 import { sdk } from '../sdk'
-import { storeJson } from '../fileModels/store.json'
+import { storeDefaults, storeJson } from '../fileModels/store.json'
 import { i18n } from '../i18n'
 
 const { InputSpec, Value } = sdk
@@ -129,19 +129,19 @@ export const configure = sdk.Action.withInput(
       blockclockUrl: store?.blockclockUrl ?? '',
       blockclockPassword: store?.blockclockPassword ?? '',
       enabledMetrics: (
-      store?.enabledMetrics
-        ? store.enabledMetrics.split(',').filter(Boolean)
-        : DEFAULT_METRICS
-    ) as (keyof typeof METRIC_VALUES)[],
-      displayIntervalSeconds: store?.displayIntervalSeconds ?? 300,
+        store?.enabledMetrics
+          ? store.enabledMetrics.split(',').filter(Boolean)
+          : DEFAULT_METRICS
+      ) as (keyof typeof METRIC_VALUES)[],
+      displayIntervalSeconds:
+        store?.displayIntervalSeconds ?? storeDefaults.displayIntervalSeconds,
       buttonAdvanceEnabled: store?.buttonAdvanceEnabled ?? true,
-      buttonPollSeconds: store?.buttonPollSeconds ?? 3,
-      sourceTimeoutSeconds: store?.sourceTimeoutSeconds ?? 10,
+      buttonPollSeconds: store?.buttonPollSeconds ?? storeDefaults.buttonPollSeconds,
+      sourceTimeoutSeconds:
+        store?.sourceTimeoutSeconds ?? storeDefaults.sourceTimeoutSeconds,
       poolApiUrl: store?.poolApiUrl ?? '',
-      priceApiUrl:
-        store?.priceApiUrl ??
-        'https://api.coinbase.com/v2/prices/BTC-USD/spot',
-      priceAllowedHosts: store?.priceAllowedHosts ?? 'api.coinbase.com',
+      priceApiUrl: store?.priceApiUrl || storeDefaults.priceApiUrl,
+      priceAllowedHosts: store?.priceAllowedHosts || storeDefaults.priceAllowedHosts,
     }
   },
   async ({ effects, input }) => {
@@ -151,13 +151,15 @@ export const configure = sdk.Action.withInput(
       enabledMetrics: Array.isArray(input.enabledMetrics)
         ? input.enabledMetrics.join(',')
         : String(input.enabledMetrics),
-      displayIntervalSeconds: input.displayIntervalSeconds ?? 300,
+      displayIntervalSeconds:
+        input.displayIntervalSeconds ?? storeDefaults.displayIntervalSeconds,
       buttonAdvanceEnabled: input.buttonAdvanceEnabled,
-      buttonPollSeconds: input.buttonPollSeconds ?? 3,
-      sourceTimeoutSeconds: input.sourceTimeoutSeconds ?? 10,
+      buttonPollSeconds: input.buttonPollSeconds ?? storeDefaults.buttonPollSeconds,
+      sourceTimeoutSeconds:
+        input.sourceTimeoutSeconds ?? storeDefaults.sourceTimeoutSeconds,
       poolApiUrl: input.poolApiUrl ?? '',
-      priceApiUrl: input.priceApiUrl ?? 'https://api.coinbase.com/v2/prices/BTC-USD/spot',
-      priceAllowedHosts: input.priceAllowedHosts ?? 'api.coinbase.com',
+      priceApiUrl: input.priceApiUrl || storeDefaults.priceApiUrl,
+      priceAllowedHosts: input.priceAllowedHosts || storeDefaults.priceAllowedHosts,
     })
   },
 )

@@ -48,8 +48,9 @@ Every router brand is different (pfSense, OpenWrt, OPNsense, Ubiquiti, Asus, Mik
 |------|---------|
 | `Dockerfile` | Builds the Python 3.12 Alpine image with the adapter source |
 | `blockclock_adapter/` | Upstream Python source (unmodified) |
-| `startos/main.ts` | Daemon definition: resolves Mempool bridge address, reads config from store.json, sets env vars |
-| `startos/fileModels/store.json.ts` | Zod schema for all configuration |
+| `startos/main.ts` | Daemon definition: resolves Mempool bridge address, reads config from store.json, sets env vars. Refuses to start until a BLOCKCLOCK URL is configured. |
+| `startos/init/taskSetBlockclock.ts` | Critical task on first install guiding the user to Configure |
+| `startos/fileModels/store.json.ts` | Zod schema for all configuration — single source of defaults; also gates pool metrics on Pool API URL presence |
 | `startos/actions/configure.ts` | Config form: BLOCKCLOCK URL, password, metrics, intervals, sources |
 | `startos/actions/acknowledgeBlock.ts` | Acknowledge blocks-found alert |
 | `startos/interfaces.ts` | Exposes status API on port 21022 |
@@ -61,14 +62,26 @@ All settings are managed through the StartOS **Configure** action:
 
 | Setting | Default | Notes |
 |---------|---------|-------|
-| BLOCKCLOCK URL | (empty) | HTTP address of your BLOCKCLOCK mini |
-| BLOCKCLOCK Password | (empty) | System password, if set |
+| BLOCKCLOCK URL | (empty) | HTTP address of your BLOCKCLOCK mini. Required — the service will not start until set. |
+| BLOCKCLOCK Password | (empty) | System password, if set (HTTP Digest) |
 | Enabled Metrics | all 7 | Multiselect: block_height, block_age, fastest_fee, btc_price, moscow_time, hash_rate, blocks_found |
 | Display Interval | 300 seconds | Minimum 60 |
 | Button Advance | true | Monitor middle button for manual advance |
+| Button Poll Interval | 3 seconds | How often to check for button presses |
+| Source Timeout | 10 seconds | HTTP timeout for mempool/pool/price requests |
 | Pool API URL | (empty) | Optional: Public Pool API endpoint |
-| Price API URL | Coinbase | HTTPS only |
+| Price API URL | Coinbase spot | HTTPS only |
 | Allowed Price Hosts | api.coinbase.com | Comma-separated |
+
+**Pool metric gating:** if no Pool API URL is configured, `hash_rate` and `blocks_found` are
+stripped from the enabled-metrics list automatically before reaching the adapter — selecting
+them without a pool URL would otherwise just produce collection errors every rotation cycle.
+
+## First-run behavior
+
+On fresh install the service does not start immediately. A critical task appears on the
+service page instructing you to run **Configure** and enter the BLOCKCLOCK URL. Once saved,
+start the service. This prevents a crash-loop against an empty config.
 
 ## Dependencies
 

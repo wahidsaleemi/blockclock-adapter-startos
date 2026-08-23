@@ -2,7 +2,7 @@
 
 Run a Coinkite BLOCKCLOCK mini without giving it internet access. This service collects Bitcoin data from your StartOS Mempool instance, fetches the BTC price from Coinbase, calculates Moscow Time locally, and pushes values to the BLOCKCLOCK through its local HTTP API.
 
-The BLOCKCLOCK never needs to initiate a connection to the internet.
+The adapter pushes data to the BLOCKCLOCK; the device never needs to initiate connections to the internet.
 
 ## What you get on StartOS
 
@@ -23,21 +23,33 @@ The BLOCKCLOCK never needs to initiate a connection to the internet.
 | Pool hash rate | Optional: Public Pool API `totalHashRate` |
 | Blocks found | Optional: Public Pool API `blocksFound` |
 
+Pool metrics (hash rate, blocks found) are only active when a **Pool API URL** is set in Configure. Without one they are skipped automatically — no errors in the logs.
+
 ## Getting set up
 
 1. **Install Mempool** on your StartOS server. The adapter requires it as a dependency.
-2. **Install Blockclock Adapter** from the marketplace or sideload the `.s9pk`.
-3. Open the **Configure** action and enter:
+2. **Install Blockclock Adapter** by sideloading the `.s9pk`.
+3. On first install a **critical task** appears: run the **Configure** action and enter:
    - **BLOCKCLOCK URL**: the HTTP address of your BLOCKCLOCK mini (e.g., `http://192.168.1.50`)
    - **BLOCKCLOCK Password**: the system password set on the BLOCKCLOCK web UI (if any)
 4. Select which metrics to display and set the rotation interval.
 5. If using a mining pool, optionally enter the **Pool API URL** for hashrate/blocks-found displays.
 6. Start the service. The adapter will begin pushing values within the configured interval.
 
+## Configure the BLOCKCLOCK itself
+
+On the BLOCKCLOCK's internal web page:
+
+1. Set the backend/external URL to `127.0.0.1` so the firmware stops pulling from Coinkite's internet backend.
+2. Under **Display**, set **Screen Update Rate** to **Manual** so the pull cycle never replaces values pushed by the adapter.
+3. Set a strong **System Password** — then put that same password in this package's Configure action.
+4. For full isolation, block the device's internet access at your router. See the package README for the per-region Coinkite backend IPs.
+
 ## How it differs from upstream
 
-The upstream project targets Umbrel with host networking (`network_mode: host`). This StartOS package:
-- Uses the StartOS SDK bridge networking to reach the Mempool dependency.
-- Stores configuration in `store.json` via StartOS file models instead of a `.env` file.
+This package wraps [billerickson/Umbrel-Blockclock-Adapter](https://github.com/billerickson/Umbrel-Blockclock-Adapter), which targets Umbrel with host networking and a `.env` file. The StartOS version:
+
+- Uses StartOS bridge networking to reach the Mempool dependency automatically — no manual URLs.
+- Stores configuration in `store.json` via the Configure action instead of editing `.env`.
 - Exposes the status endpoint as a StartOS API interface.
-- Supports all the same metrics and features as the upstream project.
+- Refuses to start until the BLOCKCLOCK URL is configured (with an on-screen task guiding you), instead of crash-looping.

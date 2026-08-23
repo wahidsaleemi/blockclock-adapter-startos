@@ -10,5 +10,5 @@
 - [x] Write acknowledge-block action
 - [x] Write i18n dictionaries
 - [x] Write icon, instructions, README
-- [ ] Build the .s9pk
+- [x] Build the .s9pk
 - [ ] Test sideload on StartOS

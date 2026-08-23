@@ -1,5 +1,6 @@
 node_modules/
 startos/
+javascript/
 *.md
 LICENSE
 TODO.md
@@ -15,3 +16,4 @@ tsconfig.json
 .gitignore
 .dockerignore
 icon.svg
+*.s9pk

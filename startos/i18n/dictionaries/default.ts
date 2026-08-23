@@ -42,6 +42,11 @@ const dict = {
   'Increment the acknowledged blocks-found counter so the alert leaves the display rotation.': 34,
   'No blocks found data is currently available.': 35,
   'JSON status endpoint showing current values, errors, and blocks-found state': 36,
+  'No BLOCKCLOCK address configured. Run the Configure action and set the BLOCKCLOCK URL (e.g. http://192.168.1.50), then start the service.': 37,
+  'Mempool is required but its bridge address is not yet available. Ensure Mempool is installed, running, and fully synced.': 38,
+  'Set your BLOCKCLOCK address to finish setup: run Configure, enter the BLOCKCLOCK URL (e.g. http://192.168.1.50), then start the service.': 39,
+  'The adapter is not reachable on the internal network. Is the service running?': 40,
+  'Could not reach the adapter status endpoint. Is the service running?': 41,
 } as const
 
 /**
