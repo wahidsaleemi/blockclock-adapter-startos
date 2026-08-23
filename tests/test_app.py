@@ -1,0 +1,244 @@
+import os
+import unittest
+from dataclasses import replace
+from tempfile import TemporaryDirectory
+from unittest.mock import call, patch
+
+from blockclock_adapter.app import (
+    Adapter,
+    BlockclockClient,
+    Config,
+    block_age_minutes,
+    blocks_found_count,
+    compact_hashrate,
+    parse_height,
+    parse_price,
+)
+
+
+class ParsingTests(unittest.TestCase):
+    def test_parses_plain_and_object_heights(self):
+        self.assertEqual(parse_height("961174"), 961174)
+        self.assertEqual(parse_height({"blockHeight": 961174}), 961174)
+
+    def test_parses_coinbase_price(self):
+        self.assertEqual(parse_price({"data": {"amount": "115000.25"}}), 115000.25)
+
+    def test_counts_pool_blocks(self):
+        self.assertEqual(blocks_found_count([]), 0)
+        self.assertEqual(blocks_found_count([{"height": 1}, {"height": 2}]), 2)
+        self.assertEqual(blocks_found_count(3), 3)
+
+    def test_calculates_block_age_in_whole_minutes(self):
+        self.assertEqual(block_age_minutes([{"timestamp": 1_000}], now=1_121), 2)
+        self.assertEqual(block_age_minutes([{"timestamp": 1_200}], now=1_121), 0)
+
+    def test_compacts_hashrate_to_seven_characters(self):
+        self.assertEqual(compact_hashrate(813_234_574_831.3806), "813GH")
+        self.assertLessEqual(len(compact_hashrate(1_234_567)), 7)
+
+
+class DisplayTests(unittest.TestCase):
+    def setUp(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.config = Config()
+
+    def test_moscow_time_uses_numeric_endpoint(self):
+        path, query = BlockclockClient._display_request("moscow_time", 870)
+        self.assertEqual(path, "/api/show/number/870")
+        self.assertEqual(query["tl"], "SATS PER DOLLAR")
+        self.assertEqual(query["pair"], "SAT/USD (Start9)")
+
+    def test_fastest_fee_shows_unit_on_left(self):
+        path, query = BlockclockClient._display_request("fastest_fee", 12)
+        self.assertEqual(path, "/api/show/number/12")
+        self.assertEqual(query["pair"], "FASTEST FEE (Start9)")
+
+    def test_block_age_shows_minutes(self):
+        path, query = BlockclockClient._display_request("block_age", 17)
+        self.assertEqual(path, "/api/show/number/170")
+        self.assertEqual(query["pair"], "BLOCK AGE (Start9)")
+        self.assertEqual(query["br"], "Minutes (Start9)")
+
+    def test_block_age_adds_min_to_rightmost_panel(self):
+        client = BlockclockClient(self.config)
+        with patch.object(client, "_get") as get:
+            client.show("block_age", 3)
+        self.assertEqual(
+            get.call_args_list,
+            [
+                call(
+                    "/api/show/number/30"
+                    "?tl=Block+Age&br=Minutes+%28Start9%29&pair=BLOCK+AGE+%28Start9%29"
+                ),
+                call("/api/ou_text/6/MIN/"),
+            ],
+        )
+
+    def test_blocks_found_shows_unit_on_left(self):
+        path, query = BlockclockClient._display_request("blocks_found", 3)
+        self.assertEqual(path, "/api/show/number/3")
+        self.assertEqual(query["pair"], "BLOCKS FOUND (Start9)")
+
+    def test_hashrate_uses_text_endpoint(self):
+        path, query = BlockclockClient._display_request("hash_rate", 813_234_574_831.3806)
+        self.assertEqual(path, "/api/show/text/813GH")
+        self.assertEqual(query["tl"], "Pool Hash")
+
+    def test_all_labels_carry_start9_marker(self):
+        for metric in (
+            "block_height",
+            "block_age",
+            "fastest_fee",
+            "btc_price",
+            "moscow_time",
+            "hash_rate",
+            "blocks_found",
+        ):
+            _, query = BlockclockClient._display_request(metric, 100)
+            marker = "(Start9)"
+            assert any(marker in str(v) for v in query.values()), (
+                f"{metric} labels missing {marker}: {query}"
+            )
+
+    def test_status_includes_deployed_commit(self):
+        with patch.dict(
+            os.environ, {"BLOCKCLOCK_ADAPTER_VERSION": "0123456789abcdef"}
+        ):
+            status = Adapter(self.config).status()
+        self.assertEqual(status["deployed_commit"], "0123456789abcdef")
+
+    def test_button_status_transition_advances_only_outside_menu(self):
+        armed, advance = Adapter._button_status_event(
+            {"showing": "static.api", "menu_active": False}, False
+        )
+        self.assertTrue(armed)
+        self.assertFalse(advance)
+
+        armed, advance = Adapter._button_status_event(
+            {"showing": "err.problem", "menu_active": True}, armed
+        )
+        self.assertTrue(armed)
+        self.assertFalse(advance)
+
+        armed, advance = Adapter._button_status_event(
+            {"showing": "err.problem", "menu_active": False}, armed
+        )
+        self.assertFalse(armed)
+        self.assertTrue(advance)
+
+    def test_flash_lights_uses_flash_endpoint(self):
+        client = BlockclockClient(self.config)
+        with patch.object(client, "_get") as get:
+            client.flash_lights()
+        get.assert_called_once_with("/api/lights/flash")
+
+
+class AdapterTests(unittest.TestCase):
+    class FixedCollector:
+        def __init__(self, values):
+            self.values = values
+
+        def collect(self):
+            return dict(self.values), {}
+
+    class RecordingBlockclock:
+        def __init__(self):
+            self.shows = []
+            self.flashes = 0
+
+        def show(self, metric, value):
+            self.shows.append((metric, value))
+
+        def flash_lights(self):
+            self.flashes += 1
+
+    def setUp(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.config = Config()
+        display_interval = patch(
+            "blockclock_adapter.app.MINIMUM_DISPLAY_INTERVAL_SECONDS", 0
+        )
+        display_interval.start()
+        self.addCleanup(display_interval.stop)
+
+    def test_blocks_found_stays_in_rotation_until_acknowledged(self):
+        with TemporaryDirectory() as temporary_directory:
+            config = replace(
+                self.config,
+                enabled_metrics=("block_height", "blocks_found"),
+                state_file=f"{temporary_directory}/state.json",
+            )
+            adapter = Adapter(config)
+            blockclock = self.RecordingBlockclock()
+            adapter.blockclock = blockclock
+
+            adapter.collector = self.FixedCollector(
+                {"block_height": 100, "blocks_found": 0}
+            )
+            adapter.run_once()
+            self.assertEqual(blockclock.shows[-1], ("block_height", 100))
+            self.assertEqual(blockclock.flashes, 0)
+
+            adapter.collector = self.FixedCollector(
+                {"block_height": 101, "blocks_found": 1}
+            )
+            adapter.run_once()
+            self.assertEqual(blockclock.shows[-1], ("blocks_found", 1))
+            self.assertEqual(blockclock.flashes, 1)
+            self.assertTrue(adapter.status()["blocks_found_alert_active"])
+
+            adapter.run_once()
+            adapter.run_once()
+            self.assertEqual(
+                blockclock.shows[-2:],
+                [("block_height", 101), ("blocks_found", 1)],
+            )
+            self.assertEqual(blockclock.flashes, 1)
+
+            acknowledged = adapter.acknowledge_block_found()
+            self.assertEqual(acknowledged["current_block_counter"], 1)
+            self.assertFalse(acknowledged["blocks_found_alert_active"])
+
+            adapter.run_once()
+            self.assertEqual(blockclock.shows[-1], ("block_height", 101))
+            self.assertEqual(blockclock.flashes, 1)
+
+            restarted = Adapter(config)
+            self.assertEqual(restarted.status()["current_block_counter"], 1)
+            self.assertEqual(restarted.status()["last_flashed_blocks_found"], 1)
+
+
+class ConfigTests(unittest.TestCase):
+    def test_reads_button_monitor_configuration(self):
+        with patch.dict(
+            os.environ,
+            {"BUTTON_ADVANCE_ENABLED": "off", "BUTTON_POLL_SECONDS": "7"},
+            clear=True,
+        ):
+            config = Config()
+        self.assertFalse(config.button_advance_enabled)
+        self.assertEqual(config.button_poll_seconds, 7)
+
+    def test_rejects_unapproved_price_host(self):
+        with patch.dict(
+            os.environ,
+            {
+                "PRICE_API_URL": "https://example.com/price",
+                "PRICE_ALLOWED_HOSTS": "api.coinbase.com",
+            },
+            clear=True,
+        ):
+            config = Config()
+            with self.assertRaisesRegex(ValueError, "not in PRICE_ALLOWED_HOSTS"):
+                config.validate()
+
+    def test_rejects_only_conditional_metric(self):
+        with patch.dict(os.environ, {"ENABLED_METRICS": "blocks_found"}, clear=True):
+            config = Config()
+            with self.assertRaisesRegex(ValueError, "rotating metric"):
+                config.validate()
+
+
+if __name__ == "__main__":
+    unittest.main()

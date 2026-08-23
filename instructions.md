@@ -13,17 +13,42 @@ The adapter pushes data to the BLOCKCLOCK; the device never needs to initiate co
 
 ## Displayed values
 
+Every screen label carries a **(Start9)** marker so you can tell at a glance the value came
+from your own node, not Coinkite's backend.
+
 | Display | Source |
 |---------|--------|
-| Block height | Mempool `/api/blocks/tip/height` |
-| Block age | Minutes since latest block from Mempool `/api/v1/blocks` |
-| Fastest fee | `fastestFee` from Mempool `/api/v1/fees/recommended` |
-| BTC/USD | Coinbase `https://api.coinbase.com/v2/prices/BTC-USD/spot` |
-| Moscow Time | `round(100,000,000 / BTC_USD)` |
-| Pool hash rate | Optional: Public Pool API `totalHashRate` |
-| Blocks found | Optional: Public Pool API `blocksFound` |
+| Block Height | Mempool `/api/blocks/tip/height` |
+| Block Age | Minutes since latest block from Mempool `/api/v1/blocks` |
+| Fastest Fee | `fastestFee` from Mempool `/api/v1/fees/recommended` |
+| BTC Price | Coinbase `https://api.coinbase.com/v2/prices/BTC-USD/spot` |
+| SATS PER DOLLAR | Calculated locally: `100,000,000 ÷ BTC/USD` |
+| Pool Hash Rate (optional) | Public Pool API `totalHashRate` |
+| Blocks Found (optional) | Public Pool API `blocksFound` |
+
+### Why "SATS PER DOLLAR" (Moscow Time)?
+
+This display shows **how many satoshis one US dollar buys** — `100,000,000 ÷ BTC/USD`. It is
+the Bitcoin-native inversion of the dollar price: instead of asking how many dollars a bitcoin
+is worth, it asks how much of a dollar a single satoshi costs.
+
+The name "Moscow Time" comes from a hyperbitcoinization thought experiment: if the number ever
+reaches **1**, one satoshi equals one dollar — implying BTC at $100,000,000. A falling number
+means each satoshi is getting stronger against the dollar. Holders watch sats-per-dollar
+because it frames the price in Bitcoin's own unit rather than the dollar's.
+
+The value is computed locally from the Coinbase spot price — no extra server, no extra trust.
 
 Pool metrics (hash rate, blocks found) are only active when a **Pool API URL** is set in Configure. Without one they are skipped automatically — no errors in the logs.
+
+## Buttons
+
+- **Left button** — opens the firmware's own menu (unchanged behavior).
+- **Middle-right button** — while an adapter screen is showing, it advances to the next metric.
+  The adapter polls for presses every few seconds and respects the E-Ink minimum refresh
+  interval (~60 s), so a press may take up to a minute to take effect; a brief firmware screen
+  or stale message in between is normal.
+- The rotation also advances automatically every **Display Interval** seconds (default 300).
 
 ## Getting set up
 

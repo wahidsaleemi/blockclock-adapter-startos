@@ -411,41 +411,50 @@ class BlockclockClient:
 
     @staticmethod
     def _display_request(metric: str, value: float | int) -> tuple[str, dict[str, str]]:
+        # Labels carry a "(Start9)" marker so every screen is visibly sourced
+        # from the owner's own StartOS node rather than Coinkite's backend.
         if metric == "block_height":
-            return f"/api/show/number/{int(value)}", {"tl": "BLOCK HEIGHT", "br": "LOCAL NODE"}
+            return f"/api/show/number/{int(value)}", {
+                "tl": "Block Height",
+                "br": "Local Node (Start9)",
+                "pair": "BLOCK HEIGHT (Start9)",
+            }
         if metric == "block_age":
             return f"/api/show/number/{int(value) * 10}", {
-                "tl": "BLOCK AGE",
-                "br": "MINUTES",
-                "pair": "BLK/AGE",
+                "tl": "Block Age",
+                "br": "Minutes (Start9)",
+                "pair": "BLOCK AGE (Start9)",
             }
         if metric == "fastest_fee":
             return f"/api/show/number/{int(value)}", {
-                "tl": "FASTEST FEE",
-                "br": "sat/vB",
-                "pair": "SATS/VB",
+                "tl": "Fastest Fee",
+                "br": "sat/vB (Start9)",
+                "pair": "FASTEST FEE (Start9)",
             }
         if metric == "btc_price":
             return f"/api/show/number/{round(float(value))}", {
-                "tl": "BTC PRICE",
-                "br": "COINBASE",
-                "pair": "BTC/USD",
+                "tl": "BTC Price",
+                "br": "Coinbase (Start9)",
+                "pair": "BTC/USD (Start9)",
                 "sym": "USD",
             }
         if metric == "moscow_time":
             return f"/api/show/number/{int(value)}", {
-                "tl": "MOSCOW TIME",
-                "br": "sats/USD",
-                "pair": "SAT/USD",
+                "tl": "SATS PER DOLLAR",
+                "br": "(Start9)",
+                "pair": "SAT/USD (Start9)",
             }
         if metric == "hash_rate":
             text = urllib.parse.quote(compact_hashrate(float(value)), safe="")
-            return f"/api/show/text/{text}", {"tl": "POOL HASH", "br": "hash/s"}
+            return f"/api/show/text/{text}", {
+                "tl": "Pool Hash",
+                "br": "hash/s (Start9)",
+            }
         if metric == "blocks_found":
             return f"/api/show/number/{int(value)}", {
-                "tl": "BLOCKS FOUND",
-                "br": "POOL",
-                "pair": "BLOCKS FOUND",
+                "tl": "Blocks Found",
+                "br": "Pool (Start9)",
+                "pair": "BLOCKS FOUND (Start9)",
             }
         raise ValueError(f"unsupported metric: {metric}")
 

@@ -9,7 +9,44 @@ StartOS Mempool (bridge) -------+
 Coinbase HTTPS -----------------+--> Blockclock Adapter --HTTP push--> BLOCKCLOCK mini
 ```
 
-The adapter rotates one value onto the E-Ink display every 5 minutes (configurable, minimum 60 seconds). On firmware 1.2.3+, the middle button requests the next adapter display.
+The adapter rotates one value onto the E-Ink display every 5 minutes (configurable). On firmware 1.2.3+, the middle-right button advances to the next adapter display.
+
+## Why Moscow Time?
+
+"Moscow Time" is a Bitcoin-native way of expressing price: **the number of satoshis one US
+dollar buys** — `100,000,000 ÷ BTC/USD`. It inverts the usual "dollars per bitcoin" framing:
+instead of asking how many dollars a bitcoin is worth, it asks how little of a dollar a single
+satoshi costs.
+
+The name comes from a thought experiment popularized by Bitcoiners (notably by the
+[TFTC "Moscow Time" show](https://tftc.io/moscow-time/)): if Moscow Time ever reaches **1**,
+one satoshi equals one dollar — meaning BTC at $100,000,000 and hyperbitcoinization complete.
+A falling number means each satoshi is getting *stronger* against the dollar, which is why
+holders prefer watching sats-per-dollar rather than dollars-per-coin.
+
+The adapter computes it locally from the Coinbase spot price — it is never fetched from any
+server. On this package the screen is titled **SATS PER DOLLAR (Start9)**; internally the
+metric is still called `moscow_time` for compatibility with upstream configuration.
+
+## Screen layout
+
+The BLOCKCLOCK renders three zones: top-left label (`tl`), main numeric/text area, and the
+bottom-right corner (`br` / `pair`). Every label carries a **(Start9)** marker so you can tell
+at a glance the value came from your own node:
+
+| Metric | Top-left | Main | Bottom-right |
+|---|---|---|---|
+| Block height | Block Height | `963763` | Local Node (Start9) |
+| Block age | Block Age | `<minutes> MIN` | Minutes (Start9)* |
+| Fastest fee | Fastest Fee | `4` | sat/vB (Start9) |
+| BTC price | BTC Price | `$77,324` | BTC/USD (Start9) |
+| SATS PER DOLLAR | SATS PER DOLLAR | `1293` | SAT/USD (Start9) |
+| *Pool hash rate* | Pool Hash | e.g. `2.4PH` | hash/s (Start9) |
+| *Blocks found* | Blocks Found | e.g. `12` | Pool (Start9) |
+
+\* Block age additionally pushes `MIN` into the rightmost panel via the clock's ou_text API.
+Depending on firmware rendering, some corner labels may swap position between panels — that
+is the device's own layout logic, not different data.
 
 ## Removing the device's dependency on Coinkite's data backend
 
