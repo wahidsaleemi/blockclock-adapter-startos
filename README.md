@@ -61,6 +61,26 @@ error screen.
 There is no way to suppress this from the adapter side; it is cosmetic firmware behavior on
 manual advance only. Automatic rotation never triggers it.
 
+## Log entries that are normal (don't worry about them)
+
+The BLOCKCLOCK's embedded web server is small and enforces its own request rate limit, and
+the adapter talks to it constantly — a status poll every few seconds for button monitoring,
+plus display pushes and the occasional E-Ink refresh cycle. Expect to see these in the logs
+and consider all of them routine:
+
+| Log line | What it means |
+|----------|---------------|
+| `HTTP Error 429: NA` | The clock's rate limiter said "too many requests, slow down". The adapter's own 60-second display-rate limiting usually avoids this, but the clock also counts the button-monitor status polls against the same budget, so an occasional 429 on a push or poll is unavoidable. The adapter simply retries on the next cycle; nothing is lost. |
+| `could not poll Blockclock button state: timed out` | The clock didn't answer a button-status poll within the Source Timeout — typically because it was busy with an E-Ink refresh or another request. The poll loop retries automatically every few seconds. |
+| `scheduled update failed` + traceback | The one visible failure of that rotation cycle (a 429, timeout, or similar). The adapter logs it, waits for the next Display Interval, and tries again — this is its designed recovery path, not a crash. A rotation that succeeds afterwards confirms recovery. |
+| `BadStatusLine: <pre>` | A rare variant of the above: under load the clock's web server returns an HTML error page instead of a valid HTTP response. Same handling — logged, retried next cycle. |
+| `waiting X seconds for the Blockclock display rate limit` | Purely informational: the adapter is deliberately spacing out pushes to protect the E-Ink panel. |
+
+If these appear occasionally, do nothing. If `scheduled update failed` appears on **every**
+cycle and `last_displayed_at` in the Status API stays null, then something is genuinely wrong
+— check that the BLOCKCLOCK URL in Configure is correct and the device responds to a manual
+`curl http://<clock-ip>/api/status`.
+
 ## Removing the device's dependency on Coinkite's data backend
 
 The BLOCKCLOCK firmware is configured by default to **pull** data from Coinkite's internet backend. The adapter **pushes** values to the device over LAN, so you want the firmware to stop pulling. Otherwise the two sources fight each other and the device keeps making outbound internet requests.
