@@ -417,7 +417,6 @@ class BlockclockClient:
             return f"/api/show/number/{int(value)}", {
                 "tl": "Block Height",
                 "br": "Local Node (Start9)",
-                "pair": "BLK/H",
             }
         if metric == "block_age":
             return f"/api/show/number/{int(value) * 10}", {
@@ -429,7 +428,7 @@ class BlockclockClient:
             return f"/api/show/number/{int(value)}", {
                 "tl": "Fastest Fee",
                 "br": "sat/vB (Start9)",
-                "pair": "FEE",
+                "pair": "sat/vB",
             }
         if metric == "btc_price":
             return f"/api/show/number/{round(float(value))}", {

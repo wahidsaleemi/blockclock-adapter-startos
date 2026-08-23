@@ -53,7 +53,7 @@ class DisplayTests(unittest.TestCase):
     def test_fastest_fee_shows_unit_on_left(self):
         path, query = BlockclockClient._display_request("fastest_fee", 12)
         self.assertEqual(path, "/api/show/number/12")
-        self.assertEqual(query["pair"], "FEE")
+        self.assertEqual(query["pair"], "sat/vB")
 
     def test_block_age_shows_minutes(self):
         path, query = BlockclockClient._display_request("block_age", 17)
