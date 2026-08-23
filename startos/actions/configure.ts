@@ -9,7 +9,7 @@ const METRIC_VALUES = {
   block_age: 'Block Age',
   fastest_fee: 'Fastest Fee',
   btc_price: 'BTC Price',
-  moscow_time: 'Moscow Time',
+  moscow_time: 'Sats per Dollar (Start9)',
   hash_rate: 'Pool Hash Rate',
   blocks_found: 'Blocks Found',
 } as const
