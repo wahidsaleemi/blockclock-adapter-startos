@@ -417,32 +417,34 @@ class BlockclockClient:
             return f"/api/show/number/{int(value)}", {
                 "tl": "Block Height",
                 "br": "Local Node (Start9)",
-                "pair": "BLOCK HEIGHT (Start9)",
+                "pair": "BLK/H",
             }
         if metric == "block_age":
             return f"/api/show/number/{int(value) * 10}", {
                 "tl": "Block Age",
                 "br": "Minutes (Start9)",
-                "pair": "BLOCK AGE (Start9)",
+                "pair": "AGE",
             }
         if metric == "fastest_fee":
             return f"/api/show/number/{int(value)}", {
                 "tl": "Fastest Fee",
                 "br": "sat/vB (Start9)",
-                "pair": "FASTEST FEE (Start9)",
+                "pair": "FEE",
             }
         if metric == "btc_price":
             return f"/api/show/number/{round(float(value))}", {
                 "tl": "BTC Price",
                 "br": "Coinbase (Start9)",
-                "pair": "BTC/USD (Start9)",
+                "pair": "BTC/USD",
                 "sym": "USD",
             }
         if metric == "moscow_time":
             return f"/api/show/number/{int(value)}", {
                 "tl": "sats/USD",
                 "br": "Sats per Dollar (Start9)",
-                "pair": "SAT/USD (Start9)",
+                # NOTE: the clock's firmware returns HTTP 400 if `pair`
+                # contains a space — keep this token space-free.
+                "pair": "SAT/USD",
             }
         if metric == "hash_rate":
             text = urllib.parse.quote(compact_hashrate(float(value)), safe="")
@@ -454,7 +456,7 @@ class BlockclockClient:
             return f"/api/show/number/{int(value)}", {
                 "tl": "Blocks Found",
                 "br": "Pool (Start9)",
-                "pair": "BLOCKS FOUND (Start9)",
+                "pair": "F/N9",
             }
         raise ValueError(f"unsupported metric: {metric}")
 

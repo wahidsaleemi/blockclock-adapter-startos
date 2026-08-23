@@ -48,17 +48,17 @@ class DisplayTests(unittest.TestCase):
         self.assertEqual(path, "/api/show/number/870")
         self.assertEqual(query["tl"], "sats/USD")
         self.assertEqual(query["br"], "Sats per Dollar (Start9)")
-        self.assertEqual(query["pair"], "SAT/USD (Start9)")
+        self.assertEqual(query["pair"], "SAT/USD")
 
     def test_fastest_fee_shows_unit_on_left(self):
         path, query = BlockclockClient._display_request("fastest_fee", 12)
         self.assertEqual(path, "/api/show/number/12")
-        self.assertEqual(query["pair"], "FASTEST FEE (Start9)")
+        self.assertEqual(query["pair"], "FEE")
 
     def test_block_age_shows_minutes(self):
         path, query = BlockclockClient._display_request("block_age", 17)
         self.assertEqual(path, "/api/show/number/170")
-        self.assertEqual(query["pair"], "BLOCK AGE (Start9)")
+        self.assertEqual(query["pair"], "AGE")
         self.assertEqual(query["br"], "Minutes (Start9)")
 
     def test_block_age_adds_min_to_rightmost_panel(self):
@@ -70,7 +70,7 @@ class DisplayTests(unittest.TestCase):
             [
                 call(
                     "/api/show/number/30"
-                    "?tl=Block+Age&br=Minutes+%28Start9%29&pair=BLOCK+AGE+%28Start9%29"
+                    "?tl=Block+Age&br=Minutes+%28Start9%29&pair=AGE"
                 ),
                 call("/api/ou_text/6/MIN/"),
             ],
@@ -79,7 +79,7 @@ class DisplayTests(unittest.TestCase):
     def test_blocks_found_shows_unit_on_left(self):
         path, query = BlockclockClient._display_request("blocks_found", 3)
         self.assertEqual(path, "/api/show/number/3")
-        self.assertEqual(query["pair"], "BLOCKS FOUND (Start9)")
+        self.assertEqual(query["pair"], "F/N9")
 
     def test_hashrate_uses_text_endpoint(self):
         path, query = BlockclockClient._display_request("hash_rate", 813_234_574_831.3806)
