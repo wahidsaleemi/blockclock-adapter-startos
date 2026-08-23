@@ -25,8 +25,9 @@ A falling number means each satoshi is getting *stronger* against the dollar, wh
 holders prefer watching sats-per-dollar rather than dollars-per-coin.
 
 The adapter computes it locally from the Coinbase spot price — it is never fetched from any
-server. On this package the screen is titled **SATS PER DOLLAR (Start9)**; internally the
-metric is still called `moscow_time` for compatibility with upstream configuration.
+server. On this package the screen shows **sats/USD** on top and **Sats per Dollar (Start9)**
+in the corner; internally the metric is still called `moscow_time` for compatibility with
+upstream configuration.
 
 ## Screen layout
 
@@ -40,7 +41,7 @@ at a glance the value came from your own node:
 | Block age | Block Age | `<minutes> MIN` | Minutes (Start9)* |
 | Fastest fee | Fastest Fee | `4` | sat/vB (Start9) |
 | BTC price | BTC Price | `$77,324` | BTC/USD (Start9) |
-| SATS PER DOLLAR | SATS PER DOLLAR | `1293` | SAT/USD (Start9) |
+| SATS PER DOLLAR | sats/USD | `1293` | Sats per Dollar (Start9) |
 | *Pool hash rate* | Pool Hash | e.g. `2.4PH` | hash/s (Start9) |
 | *Blocks found* | Blocks Found | e.g. `12` | Pool (Start9) |
 

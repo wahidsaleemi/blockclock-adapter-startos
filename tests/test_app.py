@@ -46,7 +46,8 @@ class DisplayTests(unittest.TestCase):
     def test_moscow_time_uses_numeric_endpoint(self):
         path, query = BlockclockClient._display_request("moscow_time", 870)
         self.assertEqual(path, "/api/show/number/870")
-        self.assertEqual(query["tl"], "SATS PER DOLLAR")
+        self.assertEqual(query["tl"], "sats/USD")
+        self.assertEqual(query["br"], "Sats per Dollar (Start9)")
         self.assertEqual(query["pair"], "SAT/USD (Start9)")
 
     def test_fastest_fee_shows_unit_on_left(self):

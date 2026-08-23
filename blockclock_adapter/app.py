@@ -440,8 +440,8 @@ class BlockclockClient:
             }
         if metric == "moscow_time":
             return f"/api/show/number/{int(value)}", {
-                "tl": "SATS PER DOLLAR",
-                "br": "(Start9)",
+                "tl": "sats/USD",
+                "br": "Sats per Dollar (Start9)",
                 "pair": "SAT/USD (Start9)",
             }
         if metric == "hash_rate":
