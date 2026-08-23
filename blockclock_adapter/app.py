@@ -297,7 +297,11 @@ class DataCollector:
         self._capture("block_age", values, errors, self._block_age)
         self._capture("fastest_fee", values, errors, self._fastest_fee)
         self._capture("btc_price", values, errors, self._btc_price)
-        self._capture("pool", values, errors, self._pool)
+        # Only fetch pool data when at least one pool-sourced metric is
+        # actually displayed — otherwise this just logs connection errors
+        # every cycle for users without a Public Pool endpoint.
+        if {"hash_rate", "blocks_found"} & set(self.config.enabled_metrics):
+            self._capture("pool", values, errors, self._pool)
 
         if "btc_price" in values:
             values["moscow_time"] = round(100_000_000 / float(values["btc_price"]))
