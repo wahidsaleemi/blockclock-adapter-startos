@@ -1,6 +1,6 @@
 # Blockclock Adapter for StartOS
 
-A [StartOS](https://start9.com) service package for the [Blockclock Adapter](https://github.com/billerickson/Umbrel-Blockclock-Adapter). Runs a Coinkite BLOCKCLOCK mini without internet access by collecting Bitcoin data from StartOS services and pushing it to the BLOCKCLOCK over LAN.
+A [StartOS](https://start9.com) service package for the Coinkite BLOCKCLOCK. Runs a Coinkite BLOCKCLOCK micrp without internet access by collecting Bitcoin data from StartOS services and pushing it to the BLOCKCLOCK over LAN.
 
 ## Architecture
 
@@ -10,6 +10,40 @@ Coinbase HTTPS -----------------+--> Blockclock Adapter --HTTP push--> BLOCKCLOC
 ```
 
 The adapter rotates one value onto the E-Ink display every 5 minutes (configurable). On firmware 1.2.3+, the middle-right button advances to the next adapter display.
+## Installation
+
+Ensure you're on StartOS 0.4.0 or later. Download the s9k file from releases and upload to your Start9 by clicking the Sideload button on the top nav bar in Start9.
+
+## Dependencies
+
+- **Mempool** (required): Provides block height, block age, and fee data via the StartOS bridge network.
+
+## Configuration
+
+All settings are managed through the StartOS **Configure** action:
+
+| Setting | Default | Notes |
+|---------|---------|-------|
+| BLOCKCLOCK URL | (empty) | HTTP address of your BLOCKCLOCK mini. Required — the service will not start until set. |
+| BLOCKCLOCK Password | (empty) | System password, if set (HTTP Digest) |
+| Enabled Metrics | all 7 | Multiselect: block_height, block_age, fastest_fee, btc_price, moscow_time, hash_rate, blocks_found |
+| Display Interval | 300 seconds | Minimum 60 |
+| Button Advance | true | Monitor middle button for manual advance |
+| Button Poll Interval | 3 seconds | How often to check for button presses |
+| Source Timeout | 10 seconds | HTTP timeout for mempool/pool/price requests |
+| Pool API URL | (empty) | Optional: Public Pool API endpoint |
+| Price API URL | Coinbase spot | HTTPS only |
+| Allowed Price Hosts | api.coinbase.com | Comma-separated |
+
+**Pool metric gating:** if no Pool API URL is configured, `hash_rate` and `blocks_found` are
+stripped from the enabled-metrics list automatically before reaching the adapter — selecting
+them without a pool URL would otherwise just produce collection errors every rotation cycle.
+
+## First-run behavior
+
+On fresh install the service does not start immediately. A critical task appears on the
+service page instructing you to run **Configure** and enter the BLOCKCLOCK URL. Once saved,
+start the service. This prevents a crash-loop against an empty config.
 
 ## Why Moscow Time?
 
@@ -125,37 +159,6 @@ Every router brand is different (pfSense, OpenWrt, OPNsense, Ubiquiti, Asus, Mik
 | `startos/actions/acknowledgeBlock.ts` | Acknowledge blocks-found alert |
 | `startos/interfaces.ts` | Exposes status API on port 21022 |
 | `startos/manifest/index.ts` | Package metadata, declares `mempool` dependency |
-
-## Configuration
-
-All settings are managed through the StartOS **Configure** action:
-
-| Setting | Default | Notes |
-|---------|---------|-------|
-| BLOCKCLOCK URL | (empty) | HTTP address of your BLOCKCLOCK mini. Required — the service will not start until set. |
-| BLOCKCLOCK Password | (empty) | System password, if set (HTTP Digest) |
-| Enabled Metrics | all 7 | Multiselect: block_height, block_age, fastest_fee, btc_price, moscow_time, hash_rate, blocks_found |
-| Display Interval | 300 seconds | Minimum 60 |
-| Button Advance | true | Monitor middle button for manual advance |
-| Button Poll Interval | 3 seconds | How often to check for button presses |
-| Source Timeout | 10 seconds | HTTP timeout for mempool/pool/price requests |
-| Pool API URL | (empty) | Optional: Public Pool API endpoint |
-| Price API URL | Coinbase spot | HTTPS only |
-| Allowed Price Hosts | api.coinbase.com | Comma-separated |
-
-**Pool metric gating:** if no Pool API URL is configured, `hash_rate` and `blocks_found` are
-stripped from the enabled-metrics list automatically before reaching the adapter — selecting
-them without a pool URL would otherwise just produce collection errors every rotation cycle.
-
-## First-run behavior
-
-On fresh install the service does not start immediately. A critical task appears on the
-service page instructing you to run **Configure** and enter the BLOCKCLOCK URL. Once saved,
-start the service. This prevents a crash-loop against an empty config.
-
-## Dependencies
-
-- **Mempool** (required): Provides block height, block age, and fee data via the StartOS bridge network.
 
 ## Build
 
